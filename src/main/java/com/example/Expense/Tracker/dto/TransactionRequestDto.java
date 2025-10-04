@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddTransactionRequestDto {
+public class TransactionRequestDto {
     @NotBlank(message = "Name is required")
     @Size(min = 3, max = 40)
     private String name;

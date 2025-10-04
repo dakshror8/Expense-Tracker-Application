@@ -1,6 +1,6 @@
 package com.example.Expense.Tracker.controller;
 
-import com.example.Expense.Tracker.dto.AddTransactionRequestDto;
+import com.example.Expense.Tracker.dto.TransactionRequestDto;
 import com.example.Expense.Tracker.dto.TransactionDto;
 import com.example.Expense.Tracker.service.TransactionService;
 import jakarta.validation.Valid;
@@ -27,7 +27,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getTransactions(userId));
     }
 
-    @GetMapping(path = "/user/{userId}/{transactionId}")
+    @GetMapping(path = "/user/{userId}/transaction/{transactionId}")
     public ResponseEntity<TransactionDto> getTransactionById(@PathVariable Long userId,
                                                              @PathVariable("transactionId") Long t_id){
         return ResponseEntity.ok(transactionService.getTransactionById(userId,t_id));
@@ -35,13 +35,13 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity<TransactionDto> addNewTransaction(
-            @RequestBody @Valid AddTransactionRequestDto addNewTransactionDto,
+            @RequestBody @Valid TransactionRequestDto addNewTransactionDto,
             Long userId){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(transactionService.addTransaction(addNewTransactionDto, userId));
     }
 
-    @DeleteMapping(path = "/user/{userID}/{transactionId}")
+    @DeleteMapping(path = "/user/{userID}/transaction/{transactionId}")
     public ResponseEntity<Void> deleteTransactionById(@PathVariable Long userId,
                                                       @PathVariable("transactionId") Long t_id){
         transactionService.deleteTransactionById(userId, t_id);
@@ -49,15 +49,17 @@ public class TransactionController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping(path = "{transactionId}")
-    public ResponseEntity<TransactionDto> updateTransaction(@PathVariable("transactionId") Long id,
-                                                        @RequestBody @Valid AddTransactionRequestDto addTransactionRequestDto){
-        return ResponseEntity.ok(transactionService.updateTransaction(id, addTransactionRequestDto));
+    @PutMapping(path = "/user/{userID}/transaction/{transactionId}")
+    public ResponseEntity<TransactionDto> updateTransaction(@PathVariable Long userId,
+                                                            @PathVariable("transactionId") Long t_id,
+                                                        @RequestBody @Valid TransactionRequestDto transactionRequestDto){
+        return ResponseEntity.ok(transactionService.updateTransaction(userId, t_id, transactionRequestDto));
     }
 
-    @PatchMapping(path = "{transactionId}")
-    public ResponseEntity<TransactionDto>  updateTransactionPartially(
-            @PathVariable("transactionId") Long id, @RequestBody Map<String,Object> updates){
-        return ResponseEntity.ok(transactionService.updatePartially(id,updates));
+    @PatchMapping(path = "/user/{userId}/transaction/{transactionId}")
+    public ResponseEntity<TransactionDto>  updateTransactionPartially(@PathVariable Long userId,
+                                                                      @PathVariable("transactionId") Long id,
+                                                                      @RequestBody Map<String,Object> updates){
+        return ResponseEntity.ok(transactionService.updatePartially(userId,id,updates));
     }
 }

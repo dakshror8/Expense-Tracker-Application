@@ -1,6 +1,6 @@
 package com.example.Expense.Tracker.service;
 
-import com.example.Expense.Tracker.dto.AddTransactionRequestDto;
+import com.example.Expense.Tracker.dto.TransactionRequestDto;
 import com.example.Expense.Tracker.entity.User;
 import com.example.Expense.Tracker.mapper.TransactionMapper;
 import com.example.Expense.Tracker.dto.TransactionDto;
@@ -59,7 +59,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionDto addTransaction(AddTransactionRequestDto addNewTransactionDto,
+    public TransactionDto addTransaction(TransactionRequestDto addNewTransactionDto,
                                          Long userId)
     {
         Transaction newTransaction = TransactionMapper.toTransaction(addNewTransactionDto);
@@ -84,48 +84,61 @@ public class TransactionService {
             throw new IllegalStateException("Transaction with id " + t_id
                     + " does not belong to user with id " + userId);
         }
-        user.removeTransaction(transaction);
 
+        user.removeTransaction(transaction);
     }
 
     @Transactional
-    public TransactionDto updateTransaction(Long id, AddTransactionRequestDto addTransactionRequestDto) {
-        Optional<Transaction> transactionOptional = transactionRepository.findById(id);
+    public TransactionDto updateTransaction(Long userId, Long t_id, TransactionRequestDto transactionRequestDto) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new IllegalStateException("User with id "+userId+" not found"));
+//
+//        Transaction transaction = transactionRepository.findById(t_id).
+//                orElseThrow(() -> new IllegalStateException("transaction with id " + t_id + " not found"));
 
-        Transaction transaction = transactionOptional.
-                orElseThrow(() -> new IllegalStateException("transaction with id " + id + " not found"));
+//        if(!transaction.getUser().getId().equals(userId)){
+//            throw new IllegalStateException("Transaction with id " + t_id
+//                    + " does not belong to user with id " + userId);
+//        }
+        Transaction transaction = transactionRepository.findByIdAndUserId(t_id,userId)
+                .orElseThrow(() -> new IllegalStateException("Transaction with id " + t_id
+                        + " does not belong to user with id " + userId));
 
-        transaction.setName(addTransactionRequestDto.getName());
-        transaction.setType(addTransactionRequestDto.getType());
-        transaction.setAmount(addTransactionRequestDto.getAmount());
-        transaction.setCategory(addTransactionRequestDto.getCategory());
+        transaction.setName(transactionRequestDto.getName());
+        transaction.setType(transactionRequestDto.getType());
+        transaction.setAmount(transactionRequestDto.getAmount());
+        transaction.setCategory(transactionRequestDto.getCategory());
 
         // no need to explicitly saving updated transaction to db. @Transactional takes care of it.
         return TransactionMapper.toTransactionDto(transaction);
     }
 
-    public TransactionDto updatePartially(Long id, Map<String, Object> updates) {
-        Transaction existingTransaction = transactionRepository.findById(id).
-                orElseThrow(() -> new IllegalStateException("transaction with id: "+id+" not found"));
+    @Transactional
+    public TransactionDto updatePartially(Long userId, Long t_id, Map<String, Object> updates) {
+        Transaction transaction = transactionRepository.findByIdAndUserId(t_id,userId)
+                .orElseThrow(() -> new IllegalStateException("Transaction with id " + t_id
+                        + " does not belong to user with id " + userId));
+
         updates.forEach((field,value) -> {
             switch(field){
                 case "name":
-                    existingTransaction.setName((String) value);
+                    transaction.setName((String) value);
                     break;
                 case "amount":
-                    existingTransaction.setAmount((Double) value);
+                    transaction.setAmount((Double) value);
                     break;
                 case "category":
-                    existingTransaction.setCategory((String) value);
+                    transaction.setCategory((String) value);
                     break;
                 case "type":
-                    existingTransaction.setType((String) value);
+                    transaction.setType((String) value);
                     break;
                 default:
                     throw new IllegalStateException("field not found.");
             }
         });
-        Transaction savedTransaction = transactionRepository.save(existingTransaction); // managed instance
-        return TransactionMapper.toTransactionDto(savedTransaction);
+
+
+        return TransactionMapper.toTransactionDto(transaction);
     }
 }
